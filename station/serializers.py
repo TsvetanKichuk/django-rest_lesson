@@ -15,8 +15,16 @@ class BusSerializer(serializers.ModelSerializer):
         read_only_fields = ("id",)
 
 
+class BusRetrieveSerializer(BusSerializer):
+    facility = FacilitySerializer(many=True)  # детальное отображение автобуса
+
+
 class BusListSerializer(BusSerializer):
-    facility = FacilitySerializer(many=True)
+    facility = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field="name"
+    )   # отображение поля facility
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -31,5 +39,14 @@ class TripSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class TripListSerializer(TripSerializer):
-    bus = BusSerializer()
+class TripListSerializer(serializers.ModelSerializer):
+    bus_info = serializers.CharField(source="bus.info", read_only=True)
+    bus_num_seats = serializers.IntegerField(source="bus.num_seats", read_only=True)
+
+    class Meta:
+        model = Trip
+        fields = ("id", "source", "destination", "departure", "bus_info", "bus_num_seats")
+
+
+class TripRetrieveSerializer(TripSerializer):
+    bus = BusRetrieveSerializer(many=False, read_only=True)  # детальное отображение автобуса
