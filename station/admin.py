@@ -15,5 +15,5 @@ class OrderAdmin(admin.ModelAdmin):
 admin.site.register(Bus)
 admin.site.register(Ticket)
 admin.site.register(Trip)
-admin.site.register(Order)
+# admin.site.register(Order)
 admin.site.register(Facility)

@@ -17,6 +17,7 @@ class Facility(models.Model):
 class Bus(models.Model):
     info = models.CharField(max_length=255, null=True)
     num_seats = models.IntegerField()
+    facility = models.ManyToManyField("Facility", related_name="buses")
 
     class Meta:
         verbose_name = "buses"
