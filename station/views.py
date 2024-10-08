@@ -3,8 +3,9 @@ from django.db.models import Count, F
 from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
-from permissions import IsAdminOrIfAuthenticatedReadOnly
+from station.permissions import IsAdminOrIfAuthenticatedReadOnly
 
 from station.models import Bus, Trip, Facility, Order
 from station.serializers import (
@@ -23,8 +24,13 @@ from station.serializers import (
 class FacilityViewSet(viewsets.ModelViewSet):
     queryset = Facility.objects.all()
     serializer_class = FacilitySerializer
-    authentication_classes = [TokenAuthentication]
-    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
+    # authentication_classes = [TokenAuthentication]
+    # permission_classes = (IsAdminOrIfAuthenticatedReadOnly, )
+
+    # def get_permissions(self):
+    #     if self.action in ('list', 'retrieve'):
+    #         return (IsAuthenticated(),)
+    #     return super().get_permissions()
 
 
 class BusSetPagination(PageNumberPagination):
@@ -37,8 +43,8 @@ class BusViewSet(viewsets.ModelViewSet):
     queryset = Bus.objects.all()
     serializer_class = BusListSerializer
     pagination_class = BusSetPagination
-    authentication_classes = [TokenAuthentication]
-    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
+    # authentication_classes = [TokenAuthentication]
+    # permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
     @staticmethod
     def _params_to_ins(query_string):

@@ -1,5 +1,9 @@
+import pathlib
+import uuid
+
 from django.db import models
 from django.db.models import UniqueConstraint
+from django.utils.text import slugify
 
 from django_rest_lesson import settings
 
@@ -14,10 +18,16 @@ class Facility(models.Model):
         return f"{self.name}"
 
 
+def create_custom_path(instance: "Bus", filename: str) -> pathlib.Path:
+    filename = f"{slugify(instance.info)}-{uuid.uuid4()}" + pathlib.Path(filename).suffix
+    return pathlib.Path("upload/buses") / pathlib.Path(filename)
+
+
 class Bus(models.Model):
     info = models.CharField(max_length=255, null=True)
     num_seats = models.IntegerField()
     facility = models.ManyToManyField("Facility", related_name="buses")
+    image = models.ImageField(null=True, upload_to=create_custom_path)
 
     class Meta:
         verbose_name = "buses"
