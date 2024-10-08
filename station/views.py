@@ -1,11 +1,9 @@
 from django.db.models import Count, F
-
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
-
-from station.permissions import IsAdminOrIfAuthenticatedReadOnly
+from rest_framework.response import Response
 
 from station.models import Bus, Trip, Facility, Order
 from station.serializers import (
@@ -17,15 +15,14 @@ from station.serializers import (
     BusRetrieveSerializer,
     TripRetrieveSerializer,
     OrderSerializer,
-    OrderListSerializer,
+    OrderListSerializer, BusImageSerializer,
 )
 
 
 class FacilityViewSet(viewsets.ModelViewSet):
     queryset = Facility.objects.all()
     serializer_class = FacilitySerializer
-    # authentication_classes = [TokenAuthentication]
-    # permission_classes = (IsAdminOrIfAuthenticatedReadOnly, )
+    authentication_classes = [TokenAuthentication]
 
     # def get_permissions(self):
     #     if self.action in ('list', 'retrieve'):
@@ -43,9 +40,7 @@ class BusViewSet(viewsets.ModelViewSet):
     queryset = Bus.objects.all()
     serializer_class = BusListSerializer
     pagination_class = BusSetPagination
-    # authentication_classes = [TokenAuthentication]
-    # permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
-
+    authentication_classes = [TokenAuthentication]
     @staticmethod
     def _params_to_ins(query_string):
         return [int(str_id) for str_id in
@@ -56,6 +51,8 @@ class BusViewSet(viewsets.ModelViewSet):
             return BusListSerializer
         elif self.action == "retrieve":
             return BusRetrieveSerializer  # оптимизация отображения
+        elif self.action == "upload_image":
+            return BusImageSerializer
         return BusSerializer
 
     def get_queryset(self):
@@ -68,6 +65,20 @@ class BusViewSet(viewsets.ModelViewSet):
             return queryset.prefetch_related("facility")  # оптимизация кверисетов
 
         return queryset.distinct()
+
+    @action(
+        detail=True,
+        methods=["POST"],
+        url_path="upload-image",
+
+    )
+    def upload_image(self, request, pk=None):
+        bus = self.get_object()
+        serializer = self.get_serializer(bus, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TripViewSet(viewsets.ModelViewSet):
@@ -104,6 +115,7 @@ class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     pagination_class = OrderSetPagination
+    authentication_classes = [TokenAuthentication]
 
     def get_queryset(self):
         queryset = self.queryset.filter(user=self.request.user)

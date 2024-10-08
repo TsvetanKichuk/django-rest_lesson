@@ -35,6 +35,12 @@ class BusRetrieveSerializer(BusSerializer):
     facility = FacilitySerializer(many=True)  # детальное отображение автобуса
 
 
+class BusImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Bus
+        fields = ("id", "image")
+
+
 class BusListSerializer(BusSerializer):
     facility = serializers.SlugRelatedField(
         many=True,
