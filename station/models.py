@@ -12,21 +12,23 @@ class Facility(models.Model):
     name = models.CharField(max_length=255, unique=True)
 
     class Meta:
-        verbose_name_plural = 'facilities'
+        verbose_name_plural = "facilities"
 
     def __str__(self):
         return f"{self.name}"
 
 
 def create_custom_path(instance: "Bus", filename: str) -> pathlib.Path:
-    filename = f"{slugify(instance.info)}-{uuid.uuid4()}" + pathlib.Path(filename).suffix
+    filename = (
+        f"{slugify(instance.info)}-{uuid.uuid4()}" + pathlib.Path(filename).suffix
+    )
     return pathlib.Path("upload/buses") / pathlib.Path(filename)
 
 
 class Bus(models.Model):
     info = models.CharField(max_length=255, null=True)
     num_seats = models.IntegerField()
-    facility = models.ManyToManyField("Facility", related_name="buses")
+    facility = models.ManyToManyField("Facility", related_name="buses", blank=True)
     image = models.ImageField(null=True, upload_to=create_custom_path)
 
     class Meta:
@@ -49,7 +51,7 @@ class Trip(models.Model):
     class Meta:
         indexes = [
             models.Index(fields=["source", "destination"]),
-            models.Index(fields=["departure"])
+            models.Index(fields=["departure"]),
         ]
 
     def __str__(self):
@@ -80,9 +82,9 @@ class Ticket(models.Model):
     @staticmethod
     def validate_seat(seat, num_seat, error_to_raise):
         if not (1 <= seat <= num_seat):
-            raise error_to_raise({
-                "seat": f"seat must be in range [1 and {num_seat}], not {seat}"
-            })
+            raise error_to_raise(
+                {"seat": f"seat must be in range [1 and {num_seat}], not {seat}"}
+            )
 
     def clean(self):
         Ticket.validate_seat(self.seat, self.trip.bus.num_seats, ValueError)
@@ -92,11 +94,9 @@ class Ticket(models.Model):
         #     })
 
     def save(
-            self,
-            force_insert=False,
-            force_update=False,
-            using=None,
-            update_fields=None
+        self, force_insert=False, force_update=False, using=None, update_fields=None
     ):
         self.full_clean()
-        return super(Ticket, self).save(force_insert, force_update, using, update_fields)
+        return super(Ticket, self).save(
+            force_insert, force_update, using, update_fields
+        )

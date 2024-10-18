@@ -9,8 +9,6 @@ router.register("trips", TripViewSet)
 router.register("facilities", FacilityViewSet)
 router.register("orders", OrderViewSet)
 
-urlpatterns = [
-    path("", include(router.urls))
-    ]
+urlpatterns = [path("", include(router.urls))]
 
-app_name = 'station'
+app_name = "station"

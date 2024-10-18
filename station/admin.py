@@ -9,7 +9,7 @@ class TicketInLine(admin.TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    inlines = (TicketInLine, )
+    inlines = (TicketInLine,)
 
 
 admin.site.register(Bus)

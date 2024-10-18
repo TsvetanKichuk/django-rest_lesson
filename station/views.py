@@ -1,4 +1,5 @@
 from django.db.models import Count, F
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import viewsets, status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
@@ -15,7 +16,8 @@ from station.serializers import (
     BusRetrieveSerializer,
     TripRetrieveSerializer,
     OrderSerializer,
-    OrderListSerializer, BusImageSerializer,
+    OrderListSerializer,
+    BusImageSerializer,
 )
 
 
@@ -24,15 +26,10 @@ class FacilityViewSet(viewsets.ModelViewSet):
     serializer_class = FacilitySerializer
     authentication_classes = [TokenAuthentication]
 
-    # def get_permissions(self):
-    #     if self.action in ('list', 'retrieve'):
-    #         return (IsAuthenticated(),)
-    #     return super().get_permissions()
-
 
 class BusSetPagination(PageNumberPagination):
     page_size = 2
-    page_size_query_param = 'page_size'
+    page_size_query_param = "page_size"
     max_page_size = 20
 
 
@@ -41,10 +38,19 @@ class BusViewSet(viewsets.ModelViewSet):
     serializer_class = BusListSerializer
     pagination_class = BusSetPagination
     authentication_classes = [TokenAuthentication]
+    # throttle_classes = [UserRateThrottle]
+    #
+    # def get(self, request, format=None):
+    #     content = {
+    #         'status': 'request was permitted'
+    #     }
+    #     return Response(content)
+
     @staticmethod
     def _params_to_ins(query_string):
-        return [int(str_id) for str_id in
-                query_string.split(",")]  # функция фильтрации по id /station/buses/?facilities=1,2
+        return [
+            int(str_id) for str_id in query_string.split(",")
+        ]  # функция фильтрации по id /station/buses/?facilities=1,2
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -70,7 +76,6 @@ class BusViewSet(viewsets.ModelViewSet):
         detail=True,
         methods=["POST"],
         url_path="upload-image",
-
     )
     def upload_image(self, request, pk=None):
         bus = self.get_object()
@@ -79,6 +84,24 @@ class BusViewSet(viewsets.ModelViewSet):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "facilities",
+                type=str,
+                description="Filter by facility id",
+                required=False,
+            ),
+            OpenApiParameter(
+                "facilities",
+                type={"type": "list", "items": {"type": "number"}},
+                description="Filter by facility id"
+            )
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 class TripViewSet(viewsets.ModelViewSet):
@@ -95,7 +118,8 @@ class TripViewSet(viewsets.ModelViewSet):
         queryset = self.queryset
         if self.action in "list":
             return queryset.select_related("bus").annotate(
-                tickets_available=F("bus__num_seats") - Count("tickets")
+                tickets_available=F("bus__num_seats")
+                - Count("tickets")
                 # функция оптимизации и подсчета оставшихся билетов
             )
 
@@ -107,7 +131,7 @@ class TripViewSet(viewsets.ModelViewSet):
 
 class OrderSetPagination(PageNumberPagination):
     page_size = 3
-    page_size_query_param = 'page_size'
+    page_size_query_param = "page_size"
     max_page_size = 20
 
 

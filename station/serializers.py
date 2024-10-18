@@ -12,9 +12,7 @@ class TicketSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         Ticket.validate_seat(
-            attrs["seat"],
-            attrs["trip"].trip.bus.num_seats,
-            serializers.ValidationError
+            attrs["seat"], attrs["trip"].trip.bus.num_seats, serializers.ValidationError
         )
 
 
@@ -43,9 +41,7 @@ class BusImageSerializer(serializers.ModelSerializer):
 
 class BusListSerializer(BusSerializer):
     facility = serializers.SlugRelatedField(
-        many=True,
-        read_only=True,
-        slug_field="name"
+        many=True, read_only=True, slug_field="name"
     )  # отображение поля facility
 
 
@@ -69,17 +65,14 @@ class TripListSerializer(serializers.ModelSerializer):
             "departure",
             "bus_info",
             "bus_num_seats",
-            "tickets_available"
+            "tickets_available",
         )
 
 
 class TripRetrieveSerializer(TripSerializer):
     bus = BusRetrieveSerializer(many=False, read_only=True)
     ticket = serializers.SlugRelatedField(
-        many=True,
-        read_only=True,
-        slug_field="seat",
-        source="tickets"
+        many=True, read_only=True, slug_field="seat", source="tickets"
     )
 
     class Meta:

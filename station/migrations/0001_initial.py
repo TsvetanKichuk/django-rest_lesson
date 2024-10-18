@@ -7,19 +7,26 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Bus',
+            name="Bus",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('info', models.CharField(max_length=255, null=True)),
-                ('num_seats', models.IntegerField()),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("info", models.CharField(max_length=255, null=True)),
+                ("num_seats", models.IntegerField()),
             ],
             options={
-                'verbose_name': 'buses',
+                "verbose_name": "buses",
             },
         ),
     ]
